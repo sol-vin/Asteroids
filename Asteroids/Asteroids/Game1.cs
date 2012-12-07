@@ -78,9 +78,7 @@ namespace Asteroids
         {
             GraphicsDevice.Clear(Color.Black);
 
-            _spriteBatch.Begin();
             _ag.Draw();
-            _spriteBatch.End();
 
             base.Draw(gameTime);
         }

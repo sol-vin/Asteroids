@@ -23,31 +23,29 @@ namespace Asteroids
             Start();
         }
 
-        public override void Start()
+        public new void Start()
         {
-            NewEntities = new List<Entity>();
             _ship = new Ship(GameRef.Game.Content.Load<Texture2D>("ship"), GameRef.Game.Content.Load<Texture2D>("bullet"), this);
             AddEntity(_ship);
 
             _enemyship = new EnemyShip(GameRef.Game.Content.Load<Texture2D>("enemyship"), GameRef.Game.Content.Load<Texture2D>("bullet"), this);
             AddEntity(_enemyship);
 
-            _ship.Targets.Add(_enemyship);
-            _enemyship.Targets.Add(_ship);
+            _ship.Collision.AddPartner(_enemyship);
+            _enemyship.Collision.AddPartner(_ship);
 
             for (var i = 0; i < 10; i++)
             {
                 var a = new Asteroid(GameRef.Game.Content.Load<Texture2D>("asteroid"), this);
 
-                while (a.Body.TestCollision(_ship))
+                while (a.Collision.TestCollision(_ship))
                 {
                     a = new Asteroid(GameRef.Game.Content.Load<Texture2D>("asteroid"), this);
                 }
-                _ship.Targets.Add(a);
-                a.Targets.Add(_ship);
+                _ship.Collision.AddPartner(a);
+                a.Collision.AddPartner(_ship);
 
-                if (!NewEntities.Contains(a))
-                    AddEntity(a);
+                AddEntity(a);
             }
 
             _font = GameRef.Game.Content.Load<SpriteFont>("font");
@@ -69,7 +67,7 @@ namespace Asteroids
                 Reset();
             }
 
-            if (_ship.Targets.Count == 0)
+            if (_ship.Collision.Partners.Count == 0)
                 GameOver(true);
             if (!_ship.Health.Alive)
                 GameOver(false);

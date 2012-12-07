@@ -40,7 +40,11 @@ namespace Asteroids.Objects
 
             Health = new Health(this, 5);
             Health.DiedEvent += Destroy;
+            Health.DiedEvent += EmitEventHandler;
             Components.Add(Health);
+
+            Collision = new Collision(this);
+            Components.Add(Collision);
 
             ThrustEmitter = new ThrustEmitter(this, StateRef.GameRef.Game.Content.Load<Texture2D>(@"particles/thrustparticle"));
             Components.Add(ThrustEmitter);
@@ -48,7 +52,7 @@ namespace Asteroids.Objects
             DeathEmitter = new DeathEmitter(this, StateRef.GameRef.Game.Content.Load<Texture2D>(@"particles/shipdeathparticle123"));
             Components.Add(DeathEmitter);
 
-            Health.DiedEvent += EmitEventHandler;
+            
 
             _attackkey = new KeyboardInput(Keys.Enter);
             _upkey = new KeyboardInput(Keys.W);

@@ -130,8 +130,9 @@
       <Project>{9F346BBB-6E03-4A1F-B3E8-7901DC6C9C2C}</Project>
       <Name>EntityEngine</Name>
     </ProjectReference>
-    <ProjectReference Include="..\EntityEngineTestBedContent\EntityEngineTestBedContent.contentproj">
-      <Name>EntityEngineTestBedContent</Name>
+    <ProjectReference Include="..\AsteroidsContent\AsteroidsContent.contentproj">
+      <Project>{55E18339-67A3-41E5-B8E9-9E0CE9483C8C}</Project>
+      <Name>AsteroidsContent %28Content%29</Name>
       <XnaReferenceType>Content</XnaReferenceType>
     </ProjectReference>
   </ItemGroup>

@@ -25,6 +25,10 @@ namespace Asteroids.Objects
             Render = new Render(this, bullettexture);
             Components.Add(Render);
 
+            Collision = new Collision(this);
+            Components.Add(Collision);
+            Collision.CollideEvent += onCollide;
+
             Emitter = new HitEmitter(this, StateRef.GameRef.Game.Content.Load<Texture2D>(@"particles/hitparticle"));
             Components.Add(Emitter);
         }
@@ -33,18 +37,16 @@ namespace Asteroids.Objects
         {
             base.Update();
 
-            foreach (var entity in Targets)
-            {
-                if (!Body.TestCollision(entity)) continue;
-                entity.Health.Hurt(1);
-                Emitter.Emit(10);
-                Destroy();
-                return;
-            }
-
             Age++;
             if (Age > 30) Render.Alpha -= .1f;
             if (Age > 45) Destroy();
+        }
+
+        private void onCollide(Entity e)
+        {
+            e.Health.Hurt(1);
+            Emitter.Emit(10);
+            Destroy();
         }
     }
 

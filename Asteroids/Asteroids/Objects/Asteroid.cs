@@ -21,38 +21,47 @@ namespace Asteroids.Objects
         {
             Body = new Body(this, new Vector2(Rand.Next(0, es.GameRef.Viewport.Right), Rand.Next(0, es.GameRef.Viewport.Bottom)), new Vector2(asteroidtexture.Width, asteroidtexture.Height));
             Components.Add(Body);
+
             Render = new Render(this, asteroidtexture) { Scale = .75f };
             Components.Add(Render);
+
             Physics = new Physics(this) { Velocity = new Vector2((float)Rand.NextDouble() * Rand.Next(-2, 3) + .5f, (float)Rand.NextDouble() * Rand.Next(-2, 3) + .5f), Drag = 1.0f };
             Components.Add(Physics);
+
             Health = new Health(this, 3);
             Components.Add(Health);
-            _emitter = new HurtEmitter(this, StateRef.GameRef.Game.Content.Load<Texture2D>(@"particles/thrustparticle"));
-            Components.Add(_emitter);
-            _hitemitter = new AsteroidHitEmitter(this, StateRef.GameRef.Game.Content.Load<Texture2D>(@"particles/thrustparticle"));
-            Components.Add(_hitemitter);
             Health.HurtEvent += EmitEventHandler;
             Health.HurtEvent += SplitAsteroid;
             Health.DiedEvent += Destroy;
+
+            Collision = new Collision(this);
+            Components.Add(Collision);
+            Collision.CollideEvent += onCollide;
+
+            _emitter = new HurtEmitter(this, StateRef.GameRef.Game.Content.Load<Texture2D>(@"particles/thrustparticle"));
+            Components.Add(_emitter);
+
+            _hitemitter = new AsteroidHitEmitter(this, StateRef.GameRef.Game.Content.Load<Texture2D>(@"particles/thrustparticle"));
+            Components.Add(_hitemitter);
         }
 
         public override void Update()
         {
             base.Update();
-            foreach (var entity in Targets.Where(entity => Body.TestCollision(entity)))
-            {
-                entity.Health.Hurt(1);
-                if (!entity.Health.Alive) return;
-
-                _hitemitter.Emit(10);
-                Destroy();
-                return;
-            }
         }
 
         public void EmitEventHandler(Entity e = null)
         {
             _emitter.Emit(10 * Health.HitPoints);
+        }
+
+        private void onCollide(Entity e)
+        {
+            e.Health.Hurt(1);
+            if (!e.Health.Alive) return;
+
+            _hitemitter.Emit(10);
+            Destroy();
         }
 
         private void SplitAsteroid(Entity e = null)
@@ -63,17 +72,21 @@ namespace Asteroids.Objects
 
             var a = new Asteroid(Render.Texture, StateRef)
                 {
-                    Targets = Targets,
                     Body = {Position = Body.Position},
                     Render = {Scale = Render.Scale},
                     Health = {HitPoints = Health.HitPoints}
                 };
 
+            foreach (var partner in Collision.Partners)
+            {
+                a.Collision.AddPartner(partner);
+            }
+
             Physics.Velocity = new Vector2((float)Rand.NextDouble() * Rand.Next(-2, 3) + .5f,
                                    (float)Rand.NextDouble() * Rand.Next(-2, 3) + .5f);
 
-            foreach (var t in Targets)
-                t.Targets.Add(a);
+            foreach (var t in Collision.Partners)
+                t.Collision.AddPartner(a);
 
             AddEntity(a);
         }
@@ -125,8 +138,8 @@ namespace Asteroids.Objects
             int index = _rand.Next(0, 3);
 
             Particle p = new FadeParticle(index, Entity.Body.Position, 40, this);
-            p.TimeToLive = 200;
-            float angle = Math.Abs(Entity.Targets[0].Body.Angle) - MathHelper.Pi;
+            p.TimeToLive = 100;
+            float angle = (float)_rand.NextDouble() * MathHelper.PiOver2;
             var anglev = (float)((_rand.NextDouble() - .5f) * 1.25f);
             p.Body.Angle = angle - anglev;
             p.Physics.Thrust((float)_rand.NextDouble() * 2);
